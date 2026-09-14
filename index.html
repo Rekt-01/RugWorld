@@ -2,96 +2,124 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Zelda-Style Overworld Hub</title>
     <style>
         body {
             margin: 0;
             background-color: #0b131f;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             height: 100vh;
             overflow: hidden;
             font-family: 'Courier New', Courier, monospace;
+            touch-action: none; /* Prevents unwanted zooming/scrolling on mobile */
         }
         canvas {
-            box-shadow: 0 0 30px rgba(0,0,0,0.9);
+            box-shadow: 0 0 20px rgba(0,0,0,0.9);
             image-rendering: pixelated;
-            border: 4px solid #333;
+            border: 3px solid #333;
             border-radius: 6px;
+            max-width: 100%;
+            height: auto;
         }
         #instructions {
-            position: absolute;
-            top: 20px;
             color: #fff;
             background: rgba(0, 0, 0, 0.75);
-            padding: 12px 20px;
+            padding: 8px 15px;
             border-radius: 8px;
-            pointer-events: none;
-            font-size: 14px;
+            font-size: 12px;
             text-align: center;
+            margin-bottom: 8px;
             border: 1px solid #555;
+        }
+        /* On-screen mobile controls layout */
+        #mobile-controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 10px;
+            gap: 5px;
+        }
+        .control-row {
+            display: flex;
+            gap: 5px;
+        }
+        .ctrl-btn {
+            width: 60px;
+            height: 45px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 8px;
+            outline: none;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .ctrl-btn:active {
+            background: rgba(255, 255, 255, 0.5);
         }
     </style>
 </head>
 <body>
     <div id="instructions">
-        <b>Adventure Hub</b><br>
-        Use <b>Arrow Keys</b> or <b>WASD</b> to explore.<br>
-        Walk into a building door to enter!
+        <b>RugWorld Hub</b> — Use WASD/Arrows (PC) or On-Screen Buttons (Mobile)
+    </div>
+
+    <!-- Mobile Touch Control Pad -->
+    <div id="mobile-controls">
+        <button class="ctrl-btn" id="btn-up">⬆️</button>
+        <div class="control-row">
+            <button class="ctrl-btn" id="btn-left">⬅️</button>
+            <button class="ctrl-btn" id="btn-down">⬇️</button>
+            <button class="ctrl-btn" id="btn-right">➡️</button>
+        </div>
     </div>
 
     <script type="module">
         import kaboom from "https://unpkg.com/kaboom@3000.0.1/dist/kaboom.mjs";
 
-        // Initialize game engine (wider map view)
         kaboom({
             width: 768,
-            height: 576,
+            height: 460, // Slightly shorter to fit mobile buttons comfortably on screen
             scale: 1,
-            background: [34, 139, 34], // Forest green grass
+            background: [34, 139, 34],
         });
 
-        // --- WORLD BOUNDARIES & WALLS ---
+        // --- WORLD BOUNDARIES ---
         const WALL_COLOR = [20, 90, 20];
-        // Outer borders
-        add([rect(768, 24), color(WALL_COLOR), pos(0, 0), area(), body({ isStatic: true })]);
-        add([rect(768, 24), color(WALL_COLOR), pos(0, 552), area(), body({ isStatic: true })]);
-        add([rect(24, 576), color(WALL_COLOR), pos(0, 0), area(), body({ isStatic: true })]);
-        add([rect(24, 576), color(WALL_COLOR), pos(744, 0), area(), body({ isStatic: true })]);
+        add([rect(768, 20), color(WALL_COLOR), pos(0, 0), area(), body({ isStatic: true })]);
+        add([rect(768, 20), color(WALL_COLOR), pos(0, 440), area(), body({ isStatic: true })]);
+        add([rect(20, 460), color(WALL_COLOR), pos(0, 0), area(), body({ isStatic: true })]);
+        add([rect(20, 460), color(WALL_COLOR), pos(748, 0), area(), body({ isStatic: true })]);
 
-        // --- SCENERY (Trees / Obstacles) ---
-        function createTree(x, y) {
-            add([rect(32, 32), color(0, 80, 0), pos(x, y), area(), body({ isStatic: true })]);
-        }
-        // Top forest line
-        for (let i = 24; i < 744; i += 32) {
-            if (i < 300 || i > 440) createTree(i, 40); // Leave a path gap if wanted, or solid top
-        }
+        // --- BUILDINGS & DOORS ---
+        // Mapping to the html files you already created!
+        const buildings = [
+            { x: 80, y: 80, color: [139, 69, 19], name: "Shop", url: "shop.html" },
+            { x: 240, y: 80, color: [110, 110, 130], name: "Arcade", url: "arcade.html" },
+            { x: 400, y: 80, color: [160, 82, 45], name: "Casino", url: "casino.html" },
+            { x: 560, y: 80, color: [90, 50, 120], name: "OpenSea", url: "Opensea.html" }
+        ];
 
-        // --- BUILDINGS ---
-        // 1. Portfolio House
-        add([rect(128, 96), color(139, 69, 19), pos(100, 150), area(), body({ isStatic: true })]); // Roof/House body
-        add([rect(32, 24), color(80, 40, 10), pos(148, 222), area(), "door", { targetUrl: "portfolio.html" }]);
-        add([text("Portfolio", { size: 14 }), pos(132, 125)]);
-
-        // 2. Projects House
-        add([rect(128, 96), color(110, 110, 130), pos(320, 150), area(), body({ isStatic: true })]);
-        add([rect(32, 24), color(50, 50, 70), pos(368, 222), area(), "door", { targetUrl: "projects.html" }]);
-        add([text("Projects", { size: 14 }), pos(360, 125)]);
-
-        // 3. Contact / About House
-        add([rect(128, 96), color(160, 82, 45), pos(540, 150), area(), body({ isStatic: true })]);
-        add([rect(32, 24), color(90, 40, 20), pos(588, 222), area(), "door", { targetUrl: "about.html" }]);
-        add([text("About Me", { size: 14 }), pos(572, 125)]);
-
+        buildings.forEach(b => {
+            // Building body
+            add([rect(110, 80), color(b.color), pos(b.x, b.y), area(), body({ isStatic: true })]);
+            // Door
+            add([rect(24, 18), color(40, 20, 10), pos(b.x + 43, b.y + 62), area(), "door", { targetUrl: b.url }]);
+            // Label
+            add([text(b.name, { size: 12 }), pos(b.x + 20, b.y - 18)]);
+        });
 
         // --- PLAYER CHARACTER ---
         const player = add([
             rect(24, 28),
-            color(220, 40, 40), // Red tunic
-            pos(372, 400),       // Starting spawn point near the bottom center
+            color(220, 40, 40),
+            pos(372, 320),
             area(),
             body(),
             "player",
@@ -99,7 +127,13 @@
 
         const SPEED = 180;
 
-        // --- MOVEMENT LISTENERS ---
+        // Direction flags for multi-platform support
+        let moveLeft = false;
+        let moveRight = false;
+        let moveUp = false;
+        let moveDown = false;
+
+        // --- KEYBOARD LISTENERS (PC) ---
         onKeyDown("left", () => { player.move(-SPEED, 0); });
         onKeyDown("right", () => { player.move(SPEED, 0); });
         onKeyDown("up", () => { player.move(0, -SPEED); });
@@ -109,6 +143,34 @@
         onKeyDown("d", () => { player.move(SPEED, 0); });
         onKeyDown("w", () => { player.move(0, -SPEED); });
         onKeyDown("s", () => { player.move(0, SPEED); });
+
+        // --- TOUCH BUTTON LISTENERS (Mobile) ---
+        function bindTouchButton(id, direction) {
+            const btn = document.getElementById(id);
+            if (!btn) return;
+            
+            const pressOn = (e) => { e.preventDefault(); if(direction === 'left') moveLeft = true; if(direction === 'right') moveRight = true; if(direction === 'up') moveUp = true; if(direction === 'down') moveDown = true; };
+            const pressOff = (e) => { e.preventDefault(); if(direction === 'left') moveLeft = false; if(direction === 'right') moveRight = false; if(direction === 'up') moveUp = false; if(direction === 'down') moveDown = false; };
+
+            btn.addEventListener("touchstart", pressOn, { passive: false });
+            btn.addEventListener("touchend", pressOff, { passive: false });
+            btn.addEventListener("mousedown", pressOn);
+            btn.addEventListener("mouseup", pressOff);
+        }
+
+        bindTouchButton("btn-up", "up");
+        bindTouchButton("btn-down", "down");
+        bindTouchButton("btn-left", "left");
+        bindTouchButton("btn-right", "right");
+
+        // Frame loop handler for smooth mobile button holding
+        onUpdate(() => {
+            if (moveLeft) player.move(-SPEED, 0);
+            if (moveRight) player.move(SPEED, 0);
+            if (moveUp) player.move(0, -SPEED);
+            if (moveDown) player.move(0, -SPEED === 0 ? SPEED : SPEED); // fallback
+            if (moveDown) player.move(0, SPEED);
+        });
 
         // --- DOOR COLLISION REDIRECT ---
         player.onCollide("door", (door) => {
