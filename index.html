@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zelda-Style Overworld Hub</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: #0b131f;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        canvas {
+            box-shadow: 0 0 30px rgba(0,0,0,0.9);
+            image-rendering: pixelated;
+            border: 4px solid #333;
+            border-radius: 6px;
+        }
+        #instructions {
+            position: absolute;
+            top: 20px;
+            color: #fff;
+            background: rgba(0, 0, 0, 0.75);
+            padding: 12px 20px;
+            border-radius: 8px;
+            pointer-events: none;
+            font-size: 14px;
+            text-align: center;
+            border: 1px solid #555;
+        }
+    </style>
+</head>
+<body>
+    <div id="instructions">
+        <b>Adventure Hub</b><br>
+        Use <b>Arrow Keys</b> or <b>WASD</b> to explore.<br>
+        Walk into a building door to enter!
+    </div>
+
+    <script type="module">
+        import kaboom from "https://unpkg.com/kaboom@3000.0.1/dist/kaboom.mjs";
+
+        // Initialize game engine (wider map view)
+        kaboom({
+            width: 768,
+            height: 576,
+            scale: 1,
+            background: [34, 139, 34], // Forest green grass
+        });
+
+        // --- WORLD BOUNDARIES & WALLS ---
+        const WALL_COLOR = [20, 90, 20];
+        // Outer borders
+        add([rect(768, 24), color(WALL_COLOR), pos(0, 0), area(), body({ isStatic: true })]);
+        add([rect(768, 24), color(WALL_COLOR), pos(0, 552), area(), body({ isStatic: true })]);
+        add([rect(24, 576), color(WALL_COLOR), pos(0, 0), area(), body({ isStatic: true })]);
+        add([rect(24, 576), color(WALL_COLOR), pos(744, 0), area(), body({ isStatic: true })]);
+
+        // --- SCENERY (Trees / Obstacles) ---
+        function createTree(x, y) {
+            add([rect(32, 32), color(0, 80, 0), pos(x, y), area(), body({ isStatic: true })]);
+        }
+        // Top forest line
+        for (let i = 24; i < 744; i += 32) {
+            if (i < 300 || i > 440) createTree(i, 40); // Leave a path gap if wanted, or solid top
+        }
+
+        // --- BUILDINGS ---
+        // 1. Portfolio House
+        add([rect(128, 96), color(139, 69, 19), pos(100, 150), area(), body({ isStatic: true })]); // Roof/House body
+        add([rect(32, 24), color(80, 40, 10), pos(148, 222), area(), "door", { targetUrl: "portfolio.html" }]);
+        add([text("Portfolio", { size: 14 }), pos(132, 125)]);
+
+        // 2. Projects House
+        add([rect(128, 96), color(110, 110, 130), pos(320, 150), area(), body({ isStatic: true })]);
+        add([rect(32, 24), color(50, 50, 70), pos(368, 222), area(), "door", { targetUrl: "projects.html" }]);
+        add([text("Projects", { size: 14 }), pos(360, 125)]);
+
+        // 3. Contact / About House
+        add([rect(128, 96), color(160, 82, 45), pos(540, 150), area(), body({ isStatic: true })]);
+        add([rect(32, 24), color(90, 40, 20), pos(588, 222), area(), "door", { targetUrl: "about.html" }]);
+        add([text("About Me", { size: 14 }), pos(572, 125)]);
+
+
+        // --- PLAYER CHARACTER ---
+        const player = add([
+            rect(24, 28),
+            color(220, 40, 40), // Red tunic
+            pos(372, 400),       // Starting spawn point near the bottom center
+            area(),
+            body(),
+            "player",
+        ]);
+
+        const SPEED = 180;
+
+        // --- MOVEMENT LISTENERS ---
+        onKeyDown("left", () => { player.move(-SPEED, 0); });
+        onKeyDown("right", () => { player.move(SPEED, 0); });
+        onKeyDown("up", () => { player.move(0, -SPEED); });
+        onKeyDown("down", () => { player.move(0, SPEED); });
+
+        onKeyDown("a", () => { player.move(-SPEED, 0); });
+        onKeyDown("d", () => { player.move(SPEED, 0); });
+        onKeyDown("w", () => { player.move(0, -SPEED); });
+        onKeyDown("s", () => { player.move(0, SPEED); });
+
+        // --- DOOR COLLISION REDIRECT ---
+        player.onCollide("door", (door) => {
+            window.location.href = door.targetUrl;
+        });
+    </script>
+</body>
+</html>
